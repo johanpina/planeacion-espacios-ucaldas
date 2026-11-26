@@ -204,7 +204,8 @@
     <li>Las ${esp} aulas especializadas (laboratorios, talleres, salas de sistemas, escenarios deportivos y artísticos) quedan por fuera: ninguna clase entra ni sale de ellas. Se identifican por el nombre del aula en el archivo fuente.</li></ul>
     <h3>Alcance y límites</h3>
     <ul><li>Los agentes son programas con reglas explícitas, no modelos de lenguaje: la misma entrada produce siempre la misma propuesta y cada decisión se puede auditar en la bitácora.</li>
-    <li>El modelo se entrenó con dos periodos. Sirve para dimensionar aulas, pero debe reentrenarse cada semestre; con más historia se podrá medir su estabilidad entre años.</li>
+    <li><b>El modelo es una aproximación y no debe tomarse como efectivo para programar.</b> No incluye la deserción, el avance de los estudiantes de un semestre a otro ni la entrada de estudiantes nuevos, que varía cada semestre y entre programas. Se entrenó con solo dos periodos.</li>
+    <li>Para que sea operativo necesita datos de cohortes (admitidos, aprobación, deserción), más periodos de historia y un piloto de un semestre.</li>
     <li>El archivo fuente no trae el equipamiento de las aulas ni la distancia entre edificios. Por eso el cambio de edificio viene desactivado y debe revisarse caso por caso.</li>
     <li>La propuesta es un insumo para la oficina que programa las aulas, no una asignación definitiva.</li></ul>
     <h3>Reproducibilidad</h3><p>El modelo se entrena con <code>train_demanda.py</code> y el sistema multiagente se puede ejecutar y verificar fuera del navegador con <code>node verificar.js</code>.</p></div>`;
