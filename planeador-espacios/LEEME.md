@@ -2,6 +2,8 @@
 
 Herramienta web de la Facultad de Inteligencia Artificial e Ingenierías (Universidad de Caldas) para estimar la capacidad instalada de aulas, encontrar espacios libres y simular el ingreso de programas nuevos. Desarrollada en el marco de la ODS 1038 de 2025.
 
+**Alcance:** cubre únicamente la Facultad (departamentos de Ingeniería y de Sistemas e Informática) y las aulas donde dicta clase. De las demás unidades solo se lee cuándo ocupan esas aulas compartidas. No es una estimación para toda la Universidad.
+
 ## Cómo abrirla
 
 No requiere instalación. Dos opciones:

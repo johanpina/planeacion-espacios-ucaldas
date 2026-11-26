@@ -8,15 +8,19 @@
   const DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   const hh = m => Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0');
 
+  /* Alcance: Facultad de IA e Ingenierías. Solo se consideran las aulas donde la Facultad dicta clase y solo se mueven sus clases;
+     las clases de otras unidades en esas aulas se respetan como ocupación fija. */
+  const FAC = new Set(['G8E', 'G8F']);
   function build(DATA, PRED, ciclo) {
-    const rooms = new Map(DATA.rooms.map(r => [r.id, Object.assign({ esp: ESPECIAL.test(r.nom) || ESPECIAL.test(r.cod) || r.cap <= 0 }, r)]));
+    const facRooms = new Set(DATA.sess.filter(s => FAC.has(s[8]) && s[1] != null).map(s => s[1]));
+    const rooms = new Map(DATA.rooms.filter(r => facRooms.has(r.id)).map(r => [r.id, Object.assign({ esp: ESPECIAL.test(r.nom) || ESPECIAL.test(r.cod) || r.cap <= 0 }, r)]));
     const sess = [];
     DATA.sess.forEach((s, k) => {
-      if (s[0] !== ciclo || s[1] == null || s[2] == null) return;
+      if (s[0] !== ciclo || s[1] == null || s[2] == null || !facRooms.has(s[1])) return;
       let dm = 0; for (let d = 0; d < 7; d++) if (s[4][d] === '1') dm |= 1 << d;
       if (!dm) return;
       const p = PRED && PRED.grupos[s[11]];
-      sess.push({ i: sess.length, k, room: s[1], ini: s[2], fin: s[3], dm, a: day(s[5]), b: day(s[6]), materia: s[7], dep: s[8], ins: s[9], cupo: s[10], clase: s[11], cod: s[12],
+      sess.push({ i: sess.length, k, fac: FAC.has(s[8]), room: s[1], ini: s[2], fin: s[3], dm, a: day(s[5]), b: day(s[6]), materia: s[7], dep: s[8], ins: s[9], cupo: s[10], clase: s[11], cod: s[12],
         p50: p ? p[0] : s[9], p90: p ? Math.min(p[1], Math.max(s[10], 1)) : s[9] });
     });
     return { rooms, sess, depts: DATA.depts };
@@ -44,14 +48,14 @@
 
     // ---------- Predictor + Auditor ----------
     const baseTxt = { real: 'inscritos reales', pred: 'predicción P90 del modelo', cupo: 'cupo ofertado' }[opts.base];
-    say(0, 'Predictor', 'Todos', 'demanda', `Publico la demanda de ${new Set(sess.map(s => s.clase)).size} grupos (${baseTxt}).`);
+    say(0, 'Predictor', 'Todos', 'demanda', `Publico la demanda de ${new Set(sess.filter(s => s.fac).map(s => s.clase)).size} grupos de la Facultad (${baseTxt}).`);
     const deficit = (s, id) => Math.max(0, dem(s) - cap(id));
-    const before = metrics(); const realAntes = (function () { let n = 0, f = 0; sess.forEach(s => { const x = s.ins - cap(s.room); if (x > 0) { n++; f += x } }); return { sobrecupo: n, sinSilla: f } })();
+    const before = metrics(); const realAntes = (function () { let n = 0, f = 0; sess.forEach(s => { if (!s.fac) return; const x = s.ins - cap(s.room); if (x > 0) { n++; f += x } }); return { sobrecupo: n, sinSilla: f } })();
     function contarCruces() { let n = 0; occ.forEach((set, id) => { if (rooms.get(id).esp) return; const a = [...set]; for (let x = 0; x < a.length; x++) for (let y = x + 1; y < a.length; y++) if (conflict(sess[a[x]], sess[a[y]])) n++ }); return n }
     const choquesAntes = contarCruces();
-    const casos = sess.filter(s => !rooms.get(s.room).esp && deficit(s, s.room) > 0).sort((x, y) => deficit(y, y.room) - deficit(x, x.room) || dem(y) - dem(x));
-    const fuera = sess.filter(s => rooms.get(s.room).esp && deficit(s, s.room) > 0);
-    say(0, 'Auditor', 'Coordinador', 'auditoria', `Encontré ${casos.length} sesiones con más estudiantes que sillas en aulas generales y ${fuera.length} en aulas especializadas (estas no se mueven).`);
+    const casos = sess.filter(s => s.fac && !rooms.get(s.room).esp && deficit(s, s.room) > 0).sort((x, y) => deficit(y, y.room) - deficit(x, x.room) || dem(y) - dem(x));
+    const fuera = sess.filter(s => s.fac && rooms.get(s.room).esp && deficit(s, s.room) > 0);
+    say(0, 'Auditor', 'Coordinador', 'auditoria', `Encontré ${casos.length} sesiones de la Facultad con más estudiantes que sillas en aulas generales y ${fuera.length} en aulas especializadas (estas no se mueven).`);
     const st = new Map(casos.map(s => [s.i, { s, via: null, from: s.room, ptr: 0, cands: null }]));
     const generales = [...rooms.values()].filter(r => !r.esp);
 
@@ -101,7 +105,7 @@
       const s = c.s, d = dem(s), old = asg[s.i]; let best = null;
       for (const id of c.cands) {
         const B = blockers(id, s); if (!B.length || B.length > 2) continue;
-        if (B.some(j => st.has(j) || movedOthers.some(m => m.s.i === j))) continue;
+        if (B.some(j => !sess[j].fac || st.has(j) || movedOthers.some(m => m.s.i === j))) continue;
         const ign = new Set([s.i]); const plan = []; let ok = true, cost = 0;
         for (const j of B) {
           const t = sess[j], dt = dem(t);
@@ -139,11 +143,11 @@
     const after = metrics();
     say(3, 'Coordinador', 'Todos', 'cierre', `Verificación terminada: ${choques} cruces nuevos de horario (había ${choquesAntes} en la programación original); ${after.sobrecupo} sesiones siguen en sobrecupo (antes ${before.sobrecupo}).`);
 
-    function reales() { let n = 0, f = 0, vac = 0; sess.forEach(s => { const r = rooms.get(asg[s.i]); const x = s.ins - r.cap; if (x > 0) { n++; f += x } if (!r.esp) vac += Math.max(0, r.cap - s.ins) }); return { sobrecupo: n, sinSilla: f, vacias: vac } }
+    function reales() { let n = 0, f = 0, vac = 0; sess.forEach(s => { if (!s.fac) return; const r = rooms.get(asg[s.i]); const x = s.ins - r.cap; if (x > 0) { n++; f += x } if (!r.esp) vac += Math.max(0, r.cap - s.ins) }); return { sobrecupo: n, sinSilla: f, vacias: vac } }
     const realDespues = reales();
     function metrics() {
       let sobre = 0, sinSilla = 0, sobreGen = 0, sinGen = 0;
-      sess.forEach(s => { const x = deficit(s, asg[s.i]); if (x > 0) { sobre++; sinSilla += x; if (!rooms.get(asg[s.i]).esp) { sobreGen++; sinGen += x } } });
+      sess.forEach(s => { if (!s.fac) return; const x = deficit(s, asg[s.i]); if (x > 0) { sobre++; sinSilla += x; if (!rooms.get(asg[s.i]).esp) { sobreGen++; sinGen += x } } });
       return { sobrecupo: sobre, sinSilla, sobreGen, sinGen };
     }
     const row = (s, from, to, via) => ({ s, dem: dem(s), from, to, via, mismoEdif: edif(from) === edif(to) });
@@ -154,5 +158,5 @@
       agentes: { deptos: new Set(casos.map(s => s.dep)).size, edificios: new Set(casos.map(s => edif(s.room))).size },
       mismoEdif: moves.filter(m => m.mismoEdif).length, asg, horario, rooms };
   }
-  root.AGENTES = { build, run, horario, ESPECIAL };
+  root.AGENTES = { build, run, horario, ESPECIAL, FAC };
 })(typeof window !== 'undefined' ? window : globalThis);

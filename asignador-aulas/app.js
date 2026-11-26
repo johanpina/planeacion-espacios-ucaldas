@@ -27,7 +27,7 @@
   function renderResumen() {
     const r = R, res = r.casos - r.pend.length;
     $('#resumen').innerHTML = `
-    <p class="intro">Esta herramienta responde dos preguntas de la programación académica: <b>¿cuántos estudiantes llegarán realmente a cada grupo?</b> y <b>¿en qué aula debe quedar cada clase para que nadie se quede sin silla?</b> La primera la contesta un modelo de aprendizaje automático validado con los datos de 2025; la segunda, un sistema de agentes que negocian las aulas con reglas explícitas y auditables.</p>
+    <p class="intro">Esta herramienta responde, <b>para la Facultad de Inteligencia Artificial e Ingenierías</b>, dos preguntas de la programación académica: <b>¿cuántos estudiantes llegarán realmente a cada grupo?</b> y <b>¿en qué aula debe quedar cada clase para que nadie se quede sin silla?</b> La primera la contesta un modelo de aprendizaje automático validado con los grupos de la Facultad en 2025; la segunda, un sistema de agentes que negocian las aulas con reglas explícitas y auditables.</p>
     <div class="grid kpis mb">
       ${kpi('Error del modelo', n1(M.modelo.mae) + ' est.', `por grupo, frente a ${n1(M.cupo.mae)} si se planea con el cupo ofertado`)}
       ${kba('Sesiones en sobrecupo', r.before.sobrecupo, r.after.sobrecupo, 'más estudiantes que sillas')}
@@ -47,7 +47,7 @@
     <div class="grid g2">
       <div class="card"><h3>Lectura del resultado</h3><p class="sub">Dimensionando con ${baseTxt()}${opts().otroEdificio ? ', permitiendo cambio de edificio' : ', sin sacar a nadie de su edificio'}.</p>
         <div class="find">
-          <div class="f"><div class="num">1</div><div><b>${n(res)} de ${n(r.casos)} casos resueltos en aulas generales</b><p>${n(r.vias.directa || 0)} con un aula libre, ${n(r.vias.permuta || 0)} con permuta entre dos clases y ${n(r.vias.cadena || 0)} con una cadena de tres. Nadie pasa a un aula con menos sillas de las que necesita.</p></div></div>
+          <div class="f"><div class="num">1</div><div><b>${n(res)} de ${n(r.casos)} casos de la Facultad resueltos en aulas generales</b><p>${n(r.vias.directa || 0)} con un aula libre, ${n(r.vias.permuta || 0)} con permuta entre dos clases y ${n(r.vias.cadena || 0)} con una cadena de tres. Solo se mueven clases de la Facultad; las de otras unidades no se tocan.</p></div></div>
           <div class="f"><div class="num">2</div><div><b>${n(r.pend.length)} casos no tienen solución con la infraestructura actual</b><p>${r.pend.length ? `En ${n(r.pend.filter(p => p.estructural).length)} el edificio no tiene ninguna aula general de ese tamaño; en el resto, todas están ocupadas en esa franja. Es el argumento de inversión o de cambio de horario.` : 'Todos los casos de aulas generales encontraron aula.'}</p></div></div>
           <div class="f"><div class="num">3</div><div><b>${n(r.fuera)} sobrecupos están en laboratorios, talleres y salas especializadas</b><p>El sistema no los mueve porque dependen del equipamiento. Se resuelven dividiendo el grupo o ajustando el cupo, no cambiando de aula.</p></div></div>
           ${opts().base !== 'real' ? `<div class="f"><div class="num">4</div><div><b>Prueba contra la realidad: ${n(r.realAntes.sobrecupo)} → ${n(r.realDespues.sobrecupo)} sesiones</b><p>Este plan se armó sin conocer la matrícula. Al compararlo con los inscritos reales de 2025-2, el sobrecupo real habría bajado ${pct(1 - r.realDespues.sobrecupo / r.realAntes.sobrecupo)}.</p></div></div>` : ''}
@@ -91,7 +91,7 @@
       ${P.deptos.slice().sort((a, b) => b[5] - a[5]).map(d => `<tr><td>${esc(d[1])}</td><td class="r">${n(d[2])}</td><td class="r">${n(d[7])}</td><td class="r">${n(d[6])}</td><td class="r">${n(d[5])}</td><td class="r"><b>${n1(d[3])}</b></td><td class="r">${n1(d[4])}</td></tr>`).join('')}
       </tbody></table></div></div>
     <div class="card"><div class="row sp mb"><div><h3>Consulta por grupo</h3><p class="sub" style="margin:0">Predicción, rango probable (P10-P90) y resultado real de cada grupo.</p></div>
-      <div class="row"><div class="form" style="grid-template-columns:220px 220px"><input id="gq" placeholder="Buscar materia…" value="${esc(gq)}"><select id="gdep"><option value="">Todos los departamentos</option>${Object.keys(D.depts).sort((a, b) => depN(a).localeCompare(depN(b))).map(d => `<option value="${d}" ${d === gdep ? 'selected' : ''}>${esc(depN(d))}</option>`).join('')}</select></div><button class="btn ghost sm" id="xGr">Descargar CSV</button></div></div>
+      <div class="row"><div class="form" style="grid-template-columns:220px 220px"><input id="gq" placeholder="Buscar materia…" value="${esc(gq)}"><select id="gdep"><option value="">Todos los departamentos</option>${[...AGENTES.FAC].sort((a, b) => depN(a).localeCompare(depN(b))).map(d => `<option value="${d}" ${d === gdep ? 'selected' : ''}>${esc(depN(d))}</option>`).join('')}</select></div><button class="btn ghost sm" id="xGr">Descargar CSV</button></div></div>
       <div class="scroll" style="max-height:420px"><table><thead><tr><th>Materia</th><th>Departamento</th><th class="r">Cupo</th><th class="r">Predicción</th><th class="r">Rango</th><th class="r">Inscritos</th><th class="r">Diferencia</th></tr></thead><tbody id="gt"></tbody></table></div><p class="small muted" id="gn"></p></div>`;
     drawScatter(); fillGroups();
     $('#gq').oninput = e => { gq = e.target.value; fillGroups() }; $('#gdep').onchange = e => { gdep = e.target.value; fillGroups() };
@@ -163,7 +163,7 @@
       ${kpi('Cruces nuevos', n(r.choques), 'verificado por el coordinador')}
     </div>
     <div class="grid g2 mb">
-      <div class="card"><h3>Cómo se resolvió cada caso</h3><p class="sub">${n(r.casos)} sesiones con sobrecupo en aulas generales.</p>
+      <div class="card"><h3>Cómo se resolvió cada caso</h3><p class="sub">${n(r.casos)} sesiones de la Facultad con sobrecupo en aulas generales.</p>
         <div class="hbars">${vias.map(([k, l]) => `<div>${l}</div><div class="bar ${k === 'pendiente' ? 'w' : 'g'}"><i style="width:${(r.vias[k] || 0) / vt * 100}%"></i></div><div><b>${n(r.vias[k] || 0)}</b></div>`).join('')}</div>
         ${opts().base !== 'real' ? `<div class="note mt">Contra los inscritos reales de 2025-2, este plan habría dejado <b>${n(r.realDespues.sobrecupo)}</b> sesiones en sobrecupo en lugar de ${n(r.realAntes.sobrecupo)}.</div>` : ''}</div>
       <div class="card"><h3>Dónde falta infraestructura</h3><p class="sub">Casos sin solución por edificio: el insumo para decidir inversión o cambios de horario.</p>
@@ -187,7 +187,7 @@
   function renderMetodo() {
     const esp = [...W.rooms.values()].filter(r => r.esp).length;
     $('#metodo').innerHTML = `<div class="card prose">
-    <h3 style="margin-top:0">Datos</h3><p>Programación académica 2025-1 y 2025-2 (archivo AULAS 2025.xlsx): ${n(D.sess.length)} registros, ${D.rooms.length} aulas. El asignador trabaja sobre ${n(W.sess.length)} sesiones de 2025-2 con aula y horario; el modelo, sobre ${n(P.n_grupos)} grupos de ${n(P.n_cursos)} cursos.</p>
+    <h3 style="margin-top:0">Alcance y datos</h3><p>La herramienta cubre únicamente la <b>Facultad de Inteligencia Artificial e Ingenierías</b>: los departamentos de Ingeniería y de Sistemas e Informática. Trabaja sobre las ${W.rooms.size} aulas donde la Facultad dictó clase en 2025 y sobre sus ${n(W.sess.filter(x => x.fac).length)} sesiones de 2025-2 con aula y horario. Las ${n(W.sess.filter(x => !x.fac).length)} sesiones de otras unidades en esas mismas aulas se leen solo para saber cuándo están ocupadas: no se mueven ni se analizan. El modelo se entrena con los ${n(P.n_grupos)} grupos de la Facultad (${n(P.n_cursos)} cursos). Fuente: programación académica 2025 (AULAS 2025.xlsx).</p>
     <h3>Modelo de predicción</h3>
     <ul><li><b>Qué predice:</b> inscritos reales de cada grupo, más un rango probable (percentiles 10 y 90).</li>
     <li><b>Con qué:</b> cupo ofertado, departamento, hora de inicio, horas semanales, sábado o nocturno, si requiere aula, número de grupos del curso y el comportamiento del curso y del departamento en 2025-1.</li>
@@ -201,7 +201,7 @@
     <li><b>Agentes de edificio</b> cuidan el calendario de sus aulas. Aceptan una propuesta si no cruza con ninguna clase; si dos casos piden la misma aula, gana el más grave y el otro vuelve a proponer (aceptación diferida).</li>
     <li><b>Coordinador</b> atiende los casos sin aula libre: busca una permuta con la clase que ocupa el aula, o una cadena hacia una tercera aula. La clase que cede solo se mueve a un aula del mismo edificio con sillas suficientes. Al final verifica cruces y entrega los casos sin solución con su motivo.</li></ul>
     <h3>Restricciones que nunca se rompen</h3>
-    <ul><li>No se cambia ningún horario ni ningún día.</li><li>Dos clases no comparten aula en la misma franja y fechas.</li><li>Ninguna clase pasa a un aula con menos sillas que su demanda.</li>
+    <ul><li>No se cambia ningún horario ni ningún día.</li><li>Solo se mueven clases de la Facultad; las de otras unidades son ocupación fija.</li><li>Dos clases no comparten aula en la misma franja y fechas.</li><li>Ninguna clase pasa a un aula con menos sillas que su demanda.</li>
     <li>Las ${esp} aulas especializadas (laboratorios, talleres, salas de sistemas, escenarios deportivos y artísticos) quedan por fuera: ninguna clase entra ni sale de ellas. Se identifican por el nombre del aula en el archivo fuente.</li></ul>
     <h3>Alcance y límites</h3>
     <ul><li>Los agentes son programas con reglas explícitas, no modelos de lenguaje: la misma entrada produce siempre la misma propuesta y cada decisión se puede auditar en la bitácora.</li>

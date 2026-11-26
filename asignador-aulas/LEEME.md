@@ -1,6 +1,6 @@
 # Asignador Inteligente de Aulas
 
-Predicción de inscritos por grupo y sistema multiagente que propone cambios de aula.
+Predicción de inscritos por grupo y sistema multiagente que propone cambios de aula, con alcance en la Facultad de Inteligencia Artificial e Ingenierías (departamentos de Ingeniería y de Sistemas e Informática). Solo se analizan y se mueven las clases de la Facultad; las de otras unidades en las mismas aulas se respetan como ocupación fija.
 Desarrollado en el marco de la ODS 1038 de 2025 · Facultad de Inteligencia Artificial e Ingenierías, Universidad de Caldas.
 
 En línea: https://johanpina.github.io/planeacion-espacios-ucaldas/

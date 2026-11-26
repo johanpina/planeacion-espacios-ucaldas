@@ -1,4 +1,4 @@
-"""Modelo de predicción de inscritos por grupo (ODS 1038 de 2025).
+"""Modelo de predicción de inscritos por grupo de la Facultad de IA e Ingenierías (ODS 1038 de 2025).
 Entrena y valida un modelo que estima cuántos estudiantes se inscribirán realmente
 en cada grupo, a partir de lo que se conoce al programar (cupo ofertado, departamento,
 tipo de curso, franja, historial del curso en el periodo anterior).
@@ -28,6 +28,9 @@ df['cod']=df.COD_MATERIA.str.replace('\xa0','').str.strip()
 g=df.groupby(['CICLO','CLASE']).agg(curso=('ID_CURSO','first'),cod=('cod','first'),materia=('NOM_MATERIA','first'),
     dep=('DEPTO_MATERIA','first'),cupo=('CAPACIDAD_PIAA','first'),ins=('INSCRITOS','first'),
     ini=('ini','min'),hsem=('hsem','sum'),sab=('sab','max'),sinaula=('sinaula','max'),nfilas=('Row','size')).reset_index()
+# Alcance: solo los departamentos de la Facultad de IA e Ingenierías
+FAC=['G8E','G8F']
+g=g[g.dep.isin(FAC)].copy()
 g['ngrupos']=g.groupby(['CICLO','curso']).CLASE.transform('size')
 g['noche']=(g.ini>=18*60).astype(int)
 g['ini']=g.ini.fillna(-1); g['hsem']=g.hsem.fillna(0)
@@ -44,7 +47,7 @@ NOM={'cupo':'Cupo ofertado','dep_c':'Departamento','ini':'Hora de inicio','hsem'
      'h_ng':'Grupos del curso, periodo anterior','h_tiene':'Curso con historial','hd_fill':'Llenado del departamento, periodo anterior'}
 X=B[FE].values; y=B.ins.values; grp=B.curso.values
 def mk(loss='squared_error',q=None):
-    return HistGradientBoostingRegressor(loss=loss,quantile=q,max_iter=300,learning_rate=0.05,max_leaf_nodes=15,min_samples_leaf=20,l2_regularization=1.0,random_state=7,categorical_features=[1])
+    return HistGradientBoostingRegressor(loss=loss,quantile=q,max_iter=150,learning_rate=0.05,max_leaf_nodes=7,min_samples_leaf=10,l2_regularization=1.0,random_state=7,categorical_features=[1])
 oof=np.zeros(len(B)); o90=np.zeros(len(B)); o10=np.zeros(len(B))
 for tr,te in GroupKFold(n_splits=5).split(X,y,grp):
     oof[te]=mk().fit(X[tr],y[tr]).predict(X[te])
@@ -64,7 +67,7 @@ M['modelo_con_hist']=met(oof,m=hm); M['modelo_sin_hist']=met(oof,m=~hm); M['hist
 cover=float(((y>=o10)&(y<=o90)).mean()); bajo90=float((y<=o90).mean())
 # respaldo temporal estricto: entrenar en 2025-1 (sin historial) y probar en 2025-2
 F2=['cupo','dep_c','ini','hsem','sab','noche','sinaula','ngrupos']
-mt=HistGradientBoostingRegressor(max_iter=300,learning_rate=0.05,max_leaf_nodes=15,min_samples_leaf=20,l2_regularization=1.0,random_state=7,categorical_features=[1]).fit(A[F2].values,A.ins.values)
+mt=HistGradientBoostingRegressor(max_iter=150,learning_rate=0.05,max_leaf_nodes=7,min_samples_leaf=10,l2_regularization=1.0,random_state=7,categorical_features=[1]).fit(A[F2].values,A.ins.values)
 M['temporal_sin_hist']=met(np.clip(mt.predict(B[F2].values),0,None))
 # importancia por permutación (modelo final sobre todo 2025-2, evaluada fuera de muestra en un pliegue)
 tr,te=next(GroupKFold(n_splits=5).split(X,y,grp)); mf=mk().fit(X[tr],y[tr])
@@ -74,7 +77,7 @@ B['p50']=np.round(oof,1); B['p90']=np.ceil(o90); B['p10']=np.floor(o10)
 dn=df.groupby('DEPTO_MATERIA').NOM_DEPTO_MATERIA.first().str.strip()
 pd_=B.groupby('dep').apply(lambda x: pd.Series({'n':len(x),'mae':np.abs(x.p50-x.ins).mean(),'mae_cupo':np.abs(x.cupo-x.ins).mean(),'ins':x.ins.sum(),'pred':x.p50.sum(),'cupo':x.cupo.sum()})).reset_index()
 pd_['nom']=pd_.dep.map(dn)
-out={'generado':datetime.date.today().isoformat(),'periodo':'2025-2','entrenado_con':'2025-1 (historial) y 2025-2 (validación cruzada por curso, 5 pliegues)',
+out={'generado':datetime.date.today().isoformat(),'periodo':'2025-2','entrenado_con':'grupos de la Facultad: 2025-1 (historial) y 2025-2 (validación cruzada por curso, 5 pliegues)','alcance':'Facultad de IA e Ingenierías (departamentos de Ingeniería y de Sistemas e Informática)',
  'n_grupos':int(len(B)),'n_cursos':int(B.curso.nunique()),'metricas':M,'cobertura_p10_p90':round(cover,3),'bajo_p90':round(bajo90,3),'importancia':imp,
  'totales':{'inscritos':int(y.sum()),'pred':int(round(oof.sum())),'cupo':int(base_cupo.sum()),'p90':int(o90.sum())},
  'deptos':[[r.dep,r.nom,int(r.n),round(r.mae,2),round(r.mae_cupo,2),int(r.ins),int(round(r.pred)),int(r.cupo)] for r in pd_.itertuples()],
