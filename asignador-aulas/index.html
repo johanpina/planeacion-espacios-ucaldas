@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asignador Inteligente de Aulas · Facultad de IA e Ingenierías</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <div>
+      <h1>Asignador Inteligente de Aulas</h1>
+      <p>Predicción de demanda + sistema multiagente · Facultad de Inteligencia Artificial e Ingenierías · Universidad de Caldas</p>
+    </div>
+  </div>
+  <div class="filters">
+    <label>Dimensionar con
+      <select id="fBase">
+        <option value="real">Inscritos reales 2025-2</option>
+        <option value="pred">Predicción del modelo (P90)</option>
+        <option value="cupo">Cupo ofertado</option>
+      </select>
+    </label>
+    <label>Cambio de edificio
+      <select id="fEdif"><option value="0">No permitir</option><option value="1">Permitir</option></select>
+    </label>
+    <a class="lnk" href="../planeador-espacios/index.html">Planeador de espacios →</a>
+  </div>
+</header>
+<nav class="tabs" id="tabs" role="tablist">
+  <button data-tab="resumen" class="on">Resumen</button>
+  <button data-tab="prediccion">Predicción de demanda</button>
+  <button data-tab="agentes">Agentes en acción</button>
+  <button data-tab="propuesta">Propuesta de aulas</button>
+  <button data-tab="metodo">Metodología</button>
+</nav>
+<main>
+  <section id="resumen" class="tab on"></section>
+  <section id="prediccion" class="tab"></section>
+  <section id="agentes" class="tab"></section>
+  <section id="propuesta" class="tab"></section>
+  <section id="metodo" class="tab"></section>
+</main>
+<footer class="foot">
+  Herramienta desarrollada en el marco de la ODS 1038 de 2025 · Fuente de datos: programación académica 2025 (AULAS 2025.xlsx) · La propuesta es un apoyo a la decisión: la asignación definitiva la aprueba la oficina responsable.
+</footer>
+<script src="../planeador-espacios/data.js"></script>
+<script src="pred.js"></script>
+<script src="agentes.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
