@@ -7,53 +7,54 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header class="top">
+<aside class="side">
   <div class="brand">
     <div class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
     <div>
       <h1>Planeador de Capacidad y Espacios</h1>
-      <p>Facultad de Inteligencia Artificial e Ingenierías · Universidad de Caldas</p>
+      <p>Uso de las aulas y simulación de programas nuevos</p>
     </div>
   </div>
-  <div class="filters" id="filters">
-    <label>Periodo
-      <select id="fCiclo"><option>2025-2</option><option>2025-1</option></select>
-    </label>
-    <label>Edificio
-      <select id="fEdif"></select>
-    </label>
-    <label>Demanda de
-      <select id="fDepto"></select>
-    </label>
-    <a class="lnk" href="../asignador-aulas/index.html">Asignador inteligente →</a>
+  <nav class="tabs" id="tabs" aria-label="Secciones">
+    <button data-tab="panorama" class="on">Panorama</button>
+    <button data-tab="aulas">Aulas</button>
+    <button data-tab="buscar">Buscar espacio</button>
+    <button data-tab="simular">Simular programa nuevo</button>
+    <button data-tab="hallazgos">Hallazgos</button>
+    <button data-tab="metodo">Metodología</button>
+  </nav>
+  <div class="side-foot">
+    <a class="lnk" href="../asignador-aulas/index.html"><small>Herramienta 2</small>Asignador Inteligente de Aulas</a>
+    <p>Facultad de Inteligencia Artificial e Ingenierías<br>Universidad de Caldas</p>
   </div>
-</header>
-
-<nav class="tabs" id="tabs" role="tablist">
-  <button data-tab="panorama" class="on">Panorama</button>
-  <button data-tab="aulas">Aulas</button>
-  <button data-tab="buscar">Buscar espacio</button>
-  <button data-tab="simular">Simular programa nuevo</button>
-  <button data-tab="hallazgos">Hallazgos</button>
-  <button data-tab="metodo">Metodología</button>
-</nav>
-
-<main>
-  <section id="panorama" class="tab on"></section>
-  <section id="aulas" class="tab"></section>
-  <section id="buscar" class="tab"></section>
-  <section id="simular" class="tab"></section>
-  <section id="hallazgos" class="tab"></section>
-  <section id="metodo" class="tab"></section>
-</main>
-
+</aside>
+<div class="content">
+  <div class="ctl">
+    <div class="filters" id="filters">
+      <label>Periodo
+        <select id="fCiclo"><option>2025-2</option><option>2025-1</option></select>
+      </label>
+      <label>Edificio
+        <select id="fEdif"></select>
+      </label>
+      <label>Demanda de
+        <select id="fDepto"></select>
+      </label>
+      <a class="lnk" href="../asignador-aulas/index.html"><small>Herramienta 2</small>Asignador Inteligente de Aulas</a>
+    </div>
+  </div>
+  <main>
+    <section id="panorama" class="tab on"></section>
+    <section id="aulas" class="tab"></section>
+    <section id="buscar" class="tab"></section>
+    <section id="simular" class="tab"></section>
+    <section id="hallazgos" class="tab"></section>
+    <section id="metodo" class="tab"></section>
+  </main>
+  <footer class="foot">Herramienta desarrollada en el marco de la ODS 1038 de 2025 · Fuente de datos: programación académica 2025 (AULAS 2025.xlsx) · Los resultados son estimaciones de apoyo a la decisión.</footer>
+</div>
 <div id="modal" class="modal" hidden><div class="sheet"><button class="x" id="modalX" aria-label="Cerrar">×</button><div id="modalBody"></div></div></div>
 <div id="tip" class="tip" hidden></div>
-
-<footer class="foot">
-  Herramienta desarrollada en el marco de la ODS 1038 de 2025 · Fuente de datos: programación académica 2025 (AULAS 2025.xlsx) · Los resultados son estimaciones de apoyo a la decisión.
-</footer>
-
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>

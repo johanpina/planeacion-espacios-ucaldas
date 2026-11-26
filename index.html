@@ -1,15 +1,120 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Herramientas de planeación de espacios · Facultad de IA e Ingenierías</title>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planeación de espacios académicos · Facultad de IA e Ingenierías</title>
 <link rel="stylesheet" href="planeador-espacios/styles.css">
-<style>.hub{max-width:980px;margin:0 auto;padding:36px 20px}.hub .card{padding:22px 24px;display:flex;flex-direction:column;gap:10px}.hub .card h2{font-size:19px;color:var(--navy)}.hub .card p{margin:0;color:var(--ink2)}.hub ul{margin:0;padding-left:18px;color:var(--ink2)}.hub a.btn{text-decoration:none;align-self:flex-start;margin-top:6px}.hub .lead{font-size:15px;color:var(--ink2);max-width:760px;margin:0 0 22px}</style>
-</head><body>
-<header class="top"><div class="brand"><div class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div><h1>Planeación inteligente de espacios académicos</h1><p>Facultad de Inteligencia Artificial e Ingenierías · Universidad de Caldas</p></div></div></header>
-<div class="hub">
-<p class="lead">Dos herramientas construidas sobre la programación académica real de 2025 para decidir con datos cómo usar las aulas: cuánta capacidad hay, cuánta demanda llegará y en qué aula debe quedar cada clase.</p>
-<div class="grid g2">
-<div class="card"><h2>1. Planeador de Capacidad y Espacios</h2><p>Diagnóstico del uso de las 247 aulas y simulación de programas nuevos.</p><ul><li>Ocupación por día, hora y edificio</li><li>Búsqueda de aulas libres por franja y tamaño</li><li>Simulador: ¿cabe un programa nuevo y cuántas cohortes?</li><li>Hallazgos descargables</li></ul><a class="btn" href="planeador-espacios/index.html">Abrir el planeador</a></div>
-<div class="card"><h2>2. Asignador Inteligente de Aulas</h2><p>Modelo de predicción de inscritos y sistema multiagente que propone cambios de aula.</p><ul><li>Predicción de demanda por grupo, validada fuera de muestra</li><li>Agentes de departamento y edificio que negocian las aulas</li><li>Propuesta de cambios sin cruces ni cambios de horario</li><li>Casos sin solución, con su motivo</li></ul><a class="btn" href="asignador-aulas/index.html">Abrir el asignador</a></div>
-</div></div>
-<footer class="foot">Herramientas desarrolladas en el marco de la ODS 1038 de 2025 · Fuente de datos: programación académica 2025 (AULAS 2025.xlsx).</footer>
-</body></html>
+<style>
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:20px;height:68px}
+.nav .id{display:flex;align-items:center;gap:11px;font-weight:650;font-size:14.5px;white-space:nowrap}
+.nav .id .mark{margin:0}
+.nav nav{display:flex;gap:22px}
+.nav nav a{color:var(--ink2);text-decoration:none;font-weight:550;font-size:13.5px;white-space:nowrap}
+.nav nav a:hover{color:var(--ink)}
+.hero{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,7fr);gap:48px;align-items:center;padding:44px 0 56px}
+.hero h1{font-size:clamp(30px,3.5vw,44px);line-height:1.06;letter-spacing:-.035em;font-weight:680;text-wrap:balance}
+.hero p{font-size:17px;line-height:1.55;color:var(--ink2);margin:18px 0 26px;max-width:44ch}
+.hero .row .btn{padding:11px 18px;font-size:14.5px}
+.shot{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:var(--r);box-shadow:0 18px 50px rgb(18 48 94 / .14)}
+.hero .shot{transform:perspective(1600px) rotateY(-4deg);transform-origin:left center}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.facts div{padding:22px 20px 22px 0}
+.facts div+div{padding-left:22px;border-left:1px solid var(--line)}
+.facts b{display:block;font:600 30px/1.1 var(--mono);letter-spacing:-.04em;color:var(--navy)}
+.facts span{display:block;margin-top:8px;font-size:13.5px;color:var(--ink2);line-height:1.45;max-width:26ch}
+.tool{padding:68px 0 0}
+.tool h2{font-size:clamp(24px,2.6vw,32px);letter-spacing:-.025em;font-weight:660}
+.tool .lead{font-size:16px;line-height:1.55;color:var(--ink2);margin:12px 0 0;max-width:56ch}
+.t1{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:44px;align-items:center}
+.t1 ul{list-style:none;margin:20px 0 24px;padding:0;display:grid;gap:0}
+.t1 li{padding:11px 0;border-top:1px solid var(--line);color:var(--ink2);font-size:14.5px}
+.t1 li b{color:var(--ink);font-weight:620}
+.t2 .head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:26px}
+.t2 .pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+.t2 figure{margin:0}
+.t2 figcaption{margin-top:12px;font-size:14px;color:var(--ink2);line-height:1.5;max-width:52ch}
+.t2 figcaption b{color:var(--ink);font-weight:620}
+.scope{margin:68px 0 0;padding:24px 26px;background:var(--note-bg);border:1px solid var(--note-line);border-radius:var(--r);color:var(--note-ink)}
+.scope h2{font-size:17px;margin-bottom:8px}
+.scope p{margin:0;max-width:86ch;line-height:1.6;font-size:14.5px}
+.end{padding:36px 0 44px;margin-top:56px;border-top:1px solid var(--line);color:var(--mute);font-size:12.5px;line-height:1.6}
+@media(max-width:900px){
+  .wrap{padding:0 16px}.nav nav{display:none}.nav{height:auto;padding:16px 0}.nav .id{white-space:normal;line-height:1.3}
+  .hero{grid-template-columns:1fr;gap:28px;padding:20px 0 36px}.hero .shot{transform:none}
+  .facts{grid-template-columns:1fr 1fr}.facts div{padding:18px 14px 18px 0}.facts div+div{padding-left:0;border-left:0}.facts div:nth-child(even){padding-left:16px;border-left:1px solid var(--line)}.facts div:nth-child(n+3){border-top:1px solid var(--line)}
+  .t1,.t2 .pair{grid-template-columns:1fr;gap:24px}.tool{padding-top:48px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="nav">
+    <div class="id"><div class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>Facultad de IA e Ingenierías · Universidad de Caldas</div>
+    <nav aria-label="Herramientas"><a href="#planeador">Planeador</a><a href="#asignador">Asignador</a><a href="#alcance">Alcance</a></nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <h1>Decidir con datos dónde cabe cada clase</h1>
+      <p>Dos herramientas sobre la programación académica real de 2025: una mide la capacidad de las aulas y otra propone cómo asignarlas.</p>
+      <div class="row"><a class="btn" href="planeador-espacios/index.html">Abrir el planeador</a><a class="btn ghost" href="asignador-aulas/index.html">Abrir el asignador</a></div>
+    </div>
+    <img class="shot" src="img/planeador.jpg" width="1440" height="800" alt="Panorama del Planeador: ocupación de las aulas por día, hora y edificio">
+  </section>
+
+  <section class="facts" aria-label="Cifras de 2025-2">
+    <div><b>247</b><span>aulas analizadas en 11 edificios, con 9.808 registros de programación</span></div>
+    <div><b>42%</b><span>de ocupación horaria promedio; en la noche baja a 22%</span></div>
+    <div><b>330 a 132</b><span>sesiones en sobrecupo con la propuesta del asignador, sin mover horarios</span></div>
+    <div><b>4,3</b><span>estudiantes de error por grupo en el modelo, frente a 8,7 del cupo ofertado</span></div>
+  </section>
+
+  <section class="tool t1" id="planeador">
+    <div>
+      <h2>Planeador de Capacidad y Espacios</h2>
+      <p class="lead">Responde cuánta capacidad hay, dónde está libre y si un programa nuevo cabe en la infraestructura actual.</p>
+      <ul>
+        <li><b>Panorama.</b> Ocupación por día, hora y edificio.</li>
+        <li><b>Buscar espacio.</b> Aulas libres para una franja y un tamaño de grupo.</li>
+        <li><b>Simular programa nuevo.</b> Horario propuesto por cohorte y número máximo de cohortes.</li>
+        <li><b>Hallazgos.</b> Diagnóstico con detalle descargable.</li>
+      </ul>
+      <a class="btn" href="planeador-espacios/index.html">Abrir el planeador</a>
+    </div>
+    <div class="card">
+      <h3>Simulación de referencia</h3>
+      <p class="sub">Ingeniería en Inteligencia Artificial, jornada diurna, en los dos edificios donde hoy dicta la Facultad.</p>
+      <div class="hbars">
+        <div>Bloques ubicados</div><div class="bar g"><i style="width:100%"></i></div><div>48 de 48</div>
+        <div>Uso de la holgura</div><div class="bar"><i style="width:20%"></i></div><div>20%</div>
+        <div>Cohortes simuladas</div><div class="bar"><i style="width:40%"></i></div><div>4</div>
+        <div>Cohortes que caben</div><div class="bar g"><i style="width:100%"></i></div><div>10</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool t2" id="asignador">
+    <div class="head">
+      <div>
+        <h2>Asignador Inteligente de Aulas</h2>
+        <p class="lead">Un modelo estima cuántos estudiantes llegarán a cada grupo y un sistema de agentes negocia los cambios de aula que eliminan sobrecupos.</p>
+      </div>
+      <a class="btn" href="asignador-aulas/index.html">Abrir el asignador</a>
+    </div>
+    <div class="pair">
+      <figure><img class="shot" src="img/asignador.jpg" width="1440" height="800" loading="lazy" alt="Propuesta de cambios de aula con indicadores antes y después"><figcaption><b>Propuesta de aulas.</b> 278 cambios dentro del mismo edificio, sin cruces nuevos, y los casos sin solución con su motivo.</figcaption></figure>
+      <figure><img class="shot" src="img/agentes.jpg" width="1440" height="800" loading="lazy" alt="Bitácora de mensajes entre agentes de departamento y de edificio"><figcaption><b>Agentes en acción.</b> Los departamentos proponen, los edificios aceptan o rechazan y el coordinador media. Cada decisión queda en la bitácora.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="scope" id="alcance">
+    <h2>Alcance: es una aproximación</h2>
+    <p>El modelo se entrenó con dos periodos y no incluye la deserción, el avance de los estudiantes de un semestre a otro ni la entrada de estudiantes nuevos, que varía cada semestre. Las cifras muestran el potencial del enfoque y no reemplazan la proyección de matrícula de cada programa. La asignación definitiva la aprueba la oficina responsable.</p>
+  </section>
+
+  <footer class="end">Herramientas desarrolladas en el marco de la ODS 1038 de 2025 · Fuente de datos: programación académica 2025 (AULAS 2025.xlsx)</footer>
+</div>
+</body>
+</html>

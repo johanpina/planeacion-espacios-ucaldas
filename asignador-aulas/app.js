@@ -90,7 +90,7 @@
       <div class="scroll" style="max-height:340px"><table><thead><tr><th>Departamento</th><th class="r">Grupos</th><th class="r">Cupo</th><th class="r">Predicción</th><th class="r">Inscritos</th><th class="r">Error modelo</th><th class="r">Error cupo</th></tr></thead><tbody>
       ${P.deptos.slice().sort((a, b) => b[5] - a[5]).map(d => `<tr><td>${esc(d[1])}</td><td class="r">${n(d[2])}</td><td class="r">${n(d[7])}</td><td class="r">${n(d[6])}</td><td class="r">${n(d[5])}</td><td class="r"><b>${n1(d[3])}</b></td><td class="r">${n1(d[4])}</td></tr>`).join('')}
       </tbody></table></div></div>
-    <div class="card"><div class="row sp mb"><div><h3>Consulta por grupo</h3><p class="sub" style="margin:0">Predicción, rango probable (P10–P90) y resultado real de cada grupo.</p></div>
+    <div class="card"><div class="row sp mb"><div><h3>Consulta por grupo</h3><p class="sub" style="margin:0">Predicción, rango probable (P10-P90) y resultado real de cada grupo.</p></div>
       <div class="row"><div class="form" style="grid-template-columns:220px 220px"><input id="gq" placeholder="Buscar materia…" value="${esc(gq)}"><select id="gdep"><option value="">Todos los departamentos</option>${Object.keys(D.depts).sort((a, b) => depN(a).localeCompare(depN(b))).map(d => `<option value="${d}" ${d === gdep ? 'selected' : ''}>${esc(depN(d))}</option>`).join('')}</select></div><button class="btn ghost sm" id="xGr">Descargar CSV</button></div></div>
       <div class="scroll" style="max-height:420px"><table><thead><tr><th>Materia</th><th>Departamento</th><th class="r">Cupo</th><th class="r">Predicción</th><th class="r">Rango</th><th class="r">Inscritos</th><th class="r">Diferencia</th></tr></thead><tbody id="gt"></tbody></table></div><p class="small muted" id="gn"></p></div>`;
     drawScatter(); fillGroups();
@@ -100,24 +100,25 @@
   }
   function groups() {
     const q = gq.trim().toLowerCase();
-    return Object.entries(P.grupos).map(([id, v]) => Object.assign({ id, v }, G.get(+id) || { materia: '—', dep: '', cod: '' }))
+    return Object.entries(P.grupos).map(([id, v]) => Object.assign({ id, v }, G.get(+id) || { materia: '-', dep: '', cod: '' }))
       .filter(g => (!gdep || g.dep === gdep) && (!q || g.materia.toLowerCase().includes(q)))
       .sort((a, b) => Math.abs(b.v[0] - b.v[3]) - Math.abs(a.v[0] - a.v[3]));
   }
   function fillGroups() {
     const g = groups(), show = g.slice(0, 200);
-    $('#gt').innerHTML = show.map(x => { const d = x.v[0] - x.v[3], c = Math.abs(d) <= 5 ? 'ok' : Math.abs(d) <= 10 ? 'warn' : 'bad'; return `<tr><td>${esc(x.materia)}</td><td>${esc(depN(x.dep))}</td><td class="r">${x.v[4]}</td><td class="r"><b>${n1(x.v[0])}</b></td><td class="r">${x.v[2]}–${x.v[1]}</td><td class="r">${x.v[3]}</td><td class="r"><span class="pill ${c}">${d > 0 ? '+' : ''}${n1(d)}</span></td></tr>` }).join('');
+    $('#gt').innerHTML = show.map(x => { const d = x.v[0] - x.v[3], c = Math.abs(d) <= 5 ? 'ok' : Math.abs(d) <= 10 ? 'warn' : 'bad'; return `<tr><td>${esc(x.materia)}</td><td>${esc(depN(x.dep))}</td><td class="r">${x.v[4]}</td><td class="r"><b>${n1(x.v[0])}</b></td><td class="r">${x.v[2]}-${x.v[1]}</td><td class="r">${x.v[3]}</td><td class="r"><span class="pill ${c}">${d > 0 ? '+' : ''}${n1(d)}</span></td></tr>` }).join('');
     $('#gn').textContent = `${n(g.length)} grupos; se muestran los ${n(show.length)} con mayor diferencia.`;
   }
   function drawScatter() {
     const c = $('#sc'); if (!c) return; const w = c.parentElement.clientWidth - 36, h = 330, dpr = window.devicePixelRatio || 1;
     c.width = w * dpr; c.height = h * dpr; c.style.width = w + 'px'; c.style.height = h + 'px';
     const x = c.getContext('2d'); x.scale(dpr, dpr); const m = { l: 40, r: 10, t: 8, b: 32 }, mx = 55, X = v => m.l + v / mx * (w - m.l - m.r), Y = v => h - m.b - v / mx * (h - m.t - m.b);
-    x.font = '11px sans-serif'; x.fillStyle = '#7b8499'; x.strokeStyle = '#dfe3ea'; x.lineWidth = 1;
+    const cs = getComputedStyle(document.documentElement), cv = k => cs.getPropertyValue(k).trim();
+    x.font = '11px system-ui, sans-serif'; x.fillStyle = cv('--mute'); x.strokeStyle = cv('--line'); x.lineWidth = 1;
     for (let v = 0; v <= 50; v += 10) { x.beginPath(); x.moveTo(X(v), Y(0)); x.lineTo(X(v), Y(mx)); x.moveTo(X(0), Y(v)); x.lineTo(X(mx), Y(v)); x.stroke(); x.textAlign = 'center'; x.fillText(v, X(v), h - m.b + 14); x.textAlign = 'right'; x.fillText(v, m.l - 6, Y(v) + 4) }
     x.textAlign = 'center'; x.fillText('Inscritos reales', X(mx / 2), h - 3); x.save(); x.translate(11, Y(mx / 2)); x.rotate(-Math.PI / 2); x.fillText('Predicción', 0, 0); x.restore();
-    x.fillStyle = 'rgba(23,73,140,.22)'; Object.values(P.grupos).forEach(v => { x.beginPath(); x.arc(X(Math.min(mx, v[3])) + (Math.random() - .5) * 3, Y(Math.min(mx, v[0])), 2, 0, 6.3); x.fill() });
-    x.strokeStyle = '#c79a2b'; x.lineWidth = 2; x.beginPath(); x.moveTo(X(0), Y(0)); x.lineTo(X(mx), Y(mx)); x.stroke();
+    x.globalAlpha = .28; x.fillStyle = cv('--navy2'); Object.values(P.grupos).forEach(v => { x.beginPath(); x.arc(X(Math.min(mx, v[3])) + (Math.random() - .5) * 3, Y(Math.min(mx, v[0])), 2, 0, 6.3); x.fill() });
+    x.globalAlpha = 1; x.strokeStyle = cv('--gold'); x.lineWidth = 2; x.beginPath(); x.moveTo(X(0), Y(0)); x.lineTo(X(mx), Y(mx)); x.stroke();
   }
 
   // ---------------- Agentes ----------------
@@ -129,7 +130,7 @@
     $('#agentes').innerHTML = `
     <p class="intro">Aquí se ve la negociación tal como ocurre. Cada mensaje es una decisión tomada por un agente con su propia regla: <b>los departamentos proponen, los edificios aceptan o rechazan y el coordinador media cuando no hay aula libre</b>. Todo queda registrado para que la oficina responsable pueda revisar por qué se propuso cada cambio.</p>
     <div class="card mb"><div class="row sp"><div><h3>Bitácora de la negociación</h3><p class="sub" style="margin:0">${R.agentes.deptos} departamentos, ${R.agentes.edificios} edificios, ${R.rondas} rondas, ${n(R.log.length)} mensajes · dimensionando con ${baseTxt()}.</p></div>
-      <div class="row"><button class="btn" id="play">▶ Reproducir negociación</button><button class="btn ghost" id="all">Ver todo</button><button class="btn ghost sm" id="xLog">Descargar bitácora</button></div></div>
+      <div class="row"><button class="btn" id="play">Reproducir negociación</button><button class="btn ghost" id="all">Ver todo</button><button class="btn ghost sm" id="xLog">Descargar bitácora</button></div></div>
       <div class="cnts mt" id="cn"></div></div>
     <div class="log" id="lg"></div>`;
     const lg = $('#lg'); let i = 0, lastF = -1; const c = {};
@@ -218,6 +219,7 @@
   ['#fBase', '#fEdif'].forEach(s => $(s).onchange = () => { compute(); go(cur) });
   window.addEventListener('hashchange', () => go(location.hash.slice(1)));
   window.addEventListener('resize', () => { if (cur === 'prediccion') drawScatter() });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (cur === 'prediccion') drawScatter() });
   const q = new URLSearchParams(location.search); if (q.get('base')) $('#fBase').value = q.get('base'); if (q.get('edif')) $('#fEdif').value = q.get('edif');
   compute(); go(location.hash.slice(1) || 'resumen');
   window.__asignador = { W, run: () => R };

@@ -22,7 +22,7 @@
     return { rooms, sess, depts: DATA.depts };
   }
   const conflict = (x, y) => (x.dm & y.dm) && x.ini < y.fin && y.ini < x.fin && x.a <= y.b && y.a <= x.b;
-  const horario = s => DAYS.filter((_, d) => s.dm >> d & 1).join('-') + ' ' + hh(s.ini) + '–' + hh(s.fin);
+  const horario = s => DAYS.filter((_, d) => s.dm >> d & 1).join('-') + ' ' + hh(s.ini) + '-' + hh(s.fin);
 
   /* opts: {base:'real'|'pred'|'cupo', otroEdificio:boolean} */
   function run(W, opts) {

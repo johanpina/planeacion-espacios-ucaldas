@@ -1,17 +1,17 @@
-/* Planeador de Capacidad y Espacios — Facultad de IA e Ingenierías, Universidad de Caldas.
+/* Planeador de Capacidad y Espacios - Facultad de IA e Ingenierías, Universidad de Caldas.
    Aplicación estática sin dependencias. Toda la lógica corre en el navegador sobre data.js. */
 (function(){
 'use strict';
 const D=window.DATA, S=D.sess;
 const SEM={'2025-1':['2025-02-03','2025-06-13'],'2025-2':['2025-08-11','2025-12-12']};
-const T0=360, NS=32, ND=6, GRID=ND*NS;            // 6:00–22:00 en medias horas, lunes a sábado
-const UD=5, U0=2, U1=30;                           // franja de referencia: L–V 7:00–21:00 (70 h)
+const T0=360, NS=32, ND=6, GRID=ND*NS;            // 6:00-22:00 en medias horas, lunes a sábado
+const UD=5, U0=2, U1=30;                           // franja de referencia: L-V 7:00-21:00 (70 h)
 const DAYN=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'], DAYS=['Lun','Mar','Mié','Jue','Vie','Sáb'];
 const FAC=new Set(['G8E','G8F']);
 const EDIF={ADMIN:'Administrativo',BICENTE:'Bicentenario',PALOGRANDE:'Palogrande',CENTRAL:'Sede Central',AGROP:'Agropecuarias',PARQUE:'Edificio del Parque',SALUD:'Ciencias para la Salud',BELARTE:'Bellas Artes',LABORA:'Laboratorios',BIOFILO:'Biófilo',DORADA:'La Dorada'};
 const ROOMS=D.rooms, ROOM=new Map(ROOMS.map(r=>[r.id,r]));
 const $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const pct=(v,d=0)=>isFinite(v)?(v*100).toFixed(d)+'%':'—', num=v=>Math.round(v).toLocaleString('es-CO');
+const pct=(v,d=0)=>isFinite(v)?(v*100).toFixed(d)+'%':'-', num=v=>Math.round(v).toLocaleString('es-CO');
 const hhmm=m=>{const h=Math.floor(m/60),mi=m%60;return h+':'+String(mi).padStart(2,'0')};
 const slotT=s=>hhmm(T0+s*30);
 const day=t=>Date.parse(t)/864e5;
@@ -50,7 +50,7 @@ function summary(ciclo,edif,depto){
   for(let i=0;i<GRID;i++) heat[i]/=rs.length||1;
   return {n:rs.length,seats,util:u/(rs.length||1),fill:sc?st/sc:NaN,hrs,heat};
 }
-const heatColor=v=>{const a=[236,241,248],b=[11,46,92],t=Math.min(1,v/0.85);return 'rgb('+a.map((x,i)=>Math.round(x+(b[i]-x)*t)).join(',')+')'};
+const heatColor=v=>`color-mix(in srgb,var(--heat1) ${Math.round(Math.min(1,v/0.85)*100)}%,var(--heat0))`;
 
 /* ---------- utilidades de interfaz ---------- */
 const tip=$('#tip');
@@ -74,7 +74,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#modal').hidden=t
 function renderPanorama(){
   const {ciclo,edif,depto}=state, sm=summary(ciclo,edif,depto), all=S.filter(s=>s[0]===ciclo&&deptoOk(s[8],depto));
   const sinAula=all.filter(s=>s[1]==null).length, conAula=all.filter(s=>s[1]!=null&&(edif==='*'||ROOM.get(s[1]).edif===edif)).length;
-  // hora pico y valle (L–V)
+  // hora pico y valle (L-V)
   const hr=[]; for(let h=0;h<16;h++){let v=0;for(let d=0;d<5;d++)v+=(sm.heat[d*NS+h*2]+sm.heat[d*NS+h*2+1])/2;hr.push(v/5)}
   const pk=hr.indexOf(Math.max(...hr));
   let h=`<p class="intro">Lectura de la <b>capacidad instalada</b> y su uso real en ${esc(ciclo)}, para ${edif==='*'?'todos los edificios':'<b>'+esc(edifN(edif))+'</b>'} y la demanda de <b>${esc(deptoName(depto))}</b>. La ocupación se mide sobre la franja lunes a viernes de 7:00 a 21:00 (70 horas semanales por aula).</p>
@@ -89,7 +89,7 @@ function renderPanorama(){
     <div class="card"><h3>¿Cuándo están ocupadas las aulas?</h3><p class="sub">Porcentaje de aulas en uso por día y hora (semana tipo del semestre).</p>
       <div class="heat" style="grid-template-columns:44px repeat(16,minmax(0,1fr))"><div></div>${Array.from({length:16},(_,i)=>`<div class="h">${6+i}</div>`).join('')}
       ${DAYS.map((dn,d)=>`<div class="d">${dn}</div>`+Array.from({length:16},(_,i)=>{const v=(sm.heat[d*NS+i*2]+sm.heat[d*NS+i*2+1])/2;
-        return `<div class="c ${v<.38?'lt':''}" style="background:${heatColor(v)}" data-tip="${DAYN[d]} ${6+i}:00–${7+i}:00 · ${pct(v)} de las aulas ocupadas">${Math.round(v*100)}</div>`}).join('')).join('')}</div>
+        return `<div class="c ${v<.38?'lt':''}" style="background:${heatColor(v)}" data-tip="${DAYN[d]} ${6+i}:00-${7+i}:00 · ${pct(v)} de las aulas ocupadas">${Math.round(v*100)}</div>`}).join('')).join('')}</div>
       <div class="legend"><span>menos uso</span>${[0,.2,.4,.6,.85].map(v=>`<i style="background:${heatColor(v)}"></i>`).join('')}<span>más uso</span></div>
     </div>
     <div class="card"><h3>Ocupación por edificio</h3><p class="sub">Ocupación horaria promedio de sus aulas y llenado de sillas. Haga clic para filtrar.</p>
@@ -107,7 +107,7 @@ function renderPanorama(){
   $('#panorama').innerHTML=h;
   $('#panorama').querySelectorAll('[data-edif]').forEach(a=>a.onclick=e=>{e.preventDefault();state.edif=a.dataset.edif;$('#fEdif').value=state.edif;renderAll()});
 }
-const BINS=[[1,19,'< 20'],[20,29,'20–29'],[30,39,'30–39'],[40,49,'40–49'],[50,999,'50 o más']];
+const BINS=[[1,19,'< 20'],[20,29,'20-29'],[30,39,'30-39'],[40,49,'40-49'],[50,999,'50 o más']];
 function sizeChart(ciclo,edif,depto){
   const rs=rooms(edif).filter(r=>r.cap>0), occ=occupancy(ciclo,depto), a=BINS.map(()=>0), b=BINS.map(()=>0);
   rs.forEach(r=>{a[BINS.findIndex(x=>r.cap>=x[0]&&r.cap<=x[1])]++;
@@ -132,7 +132,7 @@ function renderAulas(){
   <div class="row sp mb"><div class="form" style="grid-template-columns:280px"><label>Buscar aula<input id="qAula" value="${esc(qAula)}" placeholder="Código, nombre o edificio"></label></div>
   <div class="row"><span class="muted small">${rows.length} aulas</span><button class="btn ghost sm" id="csvAulas">Descargar CSV</button></div></div>
   <div class="scroll"><table><thead><tr>${th('aula','Aula')}${th('edif','Edificio')}${th('cap','Capacidad','r')}${th('util','Ocupación')}${th('hrs','Horas/sem','r')}${th('fill','Llenado')}${th('over','Sobrecupos','r')}<th>Lectura</th></tr></thead><tbody>
-  ${rows.map(x=>`<tr class="click" data-id="${x.r.id}"><td><b>${esc(x.r.nom)}</b></td><td>${esc(edifN(x.r.edif))}</td><td class="r">${x.r.cap||'—'}</td><td>${barCell(x.util,utilCls(x.util))}</td><td class="r">${x.hrs.toFixed(1)}</td><td>${isNaN(x.fill)?'—':barCell(x.fill,x.fill>1?'b':x.fill<.5?'w':'g')}</td><td class="r">${x.over||''}</td><td>${lectura(x)}</td></tr>`).join('')}
+  ${rows.map(x=>`<tr class="click" data-id="${x.r.id}"><td><b>${esc(x.r.nom)}</b></td><td>${esc(edifN(x.r.edif))}</td><td class="r">${x.r.cap||'-'}</td><td>${barCell(x.util,utilCls(x.util))}</td><td class="r">${x.hrs.toFixed(1)}</td><td>${isNaN(x.fill)?'-':barCell(x.fill,x.fill>1?'b':x.fill<.5?'w':'g')}</td><td class="r">${x.over||''}</td><td>${lectura(x)}</td></tr>`).join('')}
   </tbody></table></div>`;
   const q=$('#qAula'); q.oninput=()=>{qAula=q.value.toLowerCase();const p=q.selectionStart;renderAulas();const n=$('#qAula');n.focus();n.setSelectionRange(p,p)};
   $('#aulas').querySelectorAll('th.s').forEach(t=>t.onclick=()=>{const k=t.dataset.k;if(k===sortK)sortD*=-1;else{sortK=k;sortD=-1}renderAulas()});
@@ -152,13 +152,13 @@ function timetable(cells){ // cells[d][h] = {t,c,tip}
 function roomModal(id){
   const r=ROOM.get(id), e=occupancy(state.ciclo,state.depto).get(id), x=roomStats(r,e);
   const cells=DAYS.map(()=>Array(16).fill(null));
-  e.list.forEach(i=>{const s=S[i];for(let d=0;d<ND;d++) if(s[4][d]==='1') for(let h=0;h<16;h++){const m=T0+h*60; if(s[2]<m+60&&s[3]>m){const c=cells[d][h]; if(!c||W[i]>c.w) cells[d][h]={w:W[i],t:s[7],c:W[i]>=.5?'u':'p',tip:`${s[7]} · ${hhmm(s[2])}–${hhmm(s[3])} · ${s[9]} inscritos · ${D.depts[s[8]]}${W[i]<.5?' · solo parte del semestre':''}`}}}});
+  e.list.forEach(i=>{const s=S[i];for(let d=0;d<ND;d++) if(s[4][d]==='1') for(let h=0;h<16;h++){const m=T0+h*60; if(s[2]<m+60&&s[3]>m){const c=cells[d][h]; if(!c||W[i]>c.w) cells[d][h]={w:W[i],t:s[7],c:W[i]>=.5?'u':'p',tip:`${s[7]} · ${hhmm(s[2])}-${hhmm(s[3])} · ${s[9]} inscritos · ${D.depts[s[8]]}${W[i]<.5?' · solo parte del semestre':''}`}}}});
   const list=e.list.map(i=>S[i]).sort((a,b)=>a[4]<b[4]?1:a[4]>b[4]?-1:a[2]-b[2]);
   openModal(`<h2>${esc(r.nom)}</h2><p class="muted">${esc(edifN(r.edif))} · capacidad ${r.cap||'no registrada'} · ${esc(state.ciclo)}</p>
   <div class="row mb mt"><span class="pill nav">Ocupación ${pct(x.util)}</span><span class="pill">${x.hrs.toFixed(1)} h/semana</span><span class="pill">Llenado ${pct(x.fill)}</span>${x.over?`<span class="pill bad">${x.over} sesiones con sobrecupo</span>`:''}</div>
-  ${timetable(cells)}<div class="legend"><i style="background:#cfdcf0"></i><span>ocupada todo el semestre</span><i style="background:#e3e9f3;margin-left:10px"></i><span>ocupada parte del semestre</span></div>
+  ${timetable(cells)}<div class="legend"><i style="background:var(--tt-u)"></i><span>ocupada todo el semestre</span><i style="background:var(--tt-p);margin-left:10px"></i><span>ocupada parte del semestre</span></div>
   <h3 class="mt mb">Sesiones programadas (${list.length})</h3><div class="scroll" style="max-height:260px"><table><thead><tr><th>Asignatura</th><th>Días</th><th>Horario</th><th class="r">Inscritos</th><th>Departamento</th></tr></thead><tbody>
-  ${list.map(s=>`<tr><td>${esc(s[7])}</td><td>${[...s[4]].slice(0,6).map((c,i)=>c==='1'?DAYS[i]:'').filter(Boolean).join(', ')}</td><td>${hhmm(s[2])}–${hhmm(s[3])}</td><td class="r">${s[9]>r.cap&&r.cap?`<span class="pill bad">${s[9]}</span>`:s[9]}</td><td>${esc(D.depts[s[8]])}</td></tr>`).join('')}</tbody></table></div>`);
+  ${list.map(s=>`<tr><td>${esc(s[7])}</td><td>${[...s[4]].slice(0,6).map((c,i)=>c==='1'?DAYS[i]:'').filter(Boolean).join(', ')}</td><td>${hhmm(s[2])}-${hhmm(s[3])}</td><td class="r">${s[9]>r.cap&&r.cap?`<span class="pill bad">${s[9]}</span>`:s[9]}</td><td>${esc(D.depts[s[8]])}</td></tr>`).join('')}</tbody></table></div>`);
 }
 
 /* ---------- BUSCAR ESPACIO ---------- */
@@ -191,7 +191,7 @@ function renderBuscar(){
     // alternativas: aulas libres por hora de inicio
     const alt=[];for(let i=2;i+bq.dur<=NS;i+=2)alt.push([i,searchRooms({...bq,ini:i,parcial:false},state.ciclo).length]); const mx=Math.max(...alt.map(a=>a[1]),1);
     $('#bRes').innerHTML=`<div class="grid g2"><div class="card" style="grid-column:span 2">
-      <div class="row sp mb"><h3>${res.length} aulas disponibles · ${bq.days.map(d=>DAYS[d]).join(', ')} ${slotT(bq.ini)}–${slotT(fin)} · ${bq.n} estudiantes</h3>${res.length?'<button class="btn ghost sm" id="csvB">Descargar CSV</button>':''}</div>
+      <div class="row sp mb"><h3>${res.length} aulas disponibles · ${bq.days.map(d=>DAYS[d]).join(', ')} ${slotT(bq.ini)}-${slotT(fin)} · ${bq.n} estudiantes</h3>${res.length?'<button class="btn ghost sm" id="csvB">Descargar CSV</button>':''}</div>
       ${res.length?`<div class="scroll" style="max-height:420px"><table><thead><tr><th>Aula</th><th>Edificio</th><th class="r">Capacidad</th><th>Sillas que usaría</th><th>Disponibilidad</th><th>Uso actual del aula</th></tr></thead><tbody>
       ${res.slice(0,80).map(o=>`<tr class="click" data-id="${o.r.id}"><td><b>${esc(o.r.nom)}</b></td><td>${esc(edifN(o.r.edif))}</td><td class="r">${o.r.cap}</td><td>${barCell(bq.n/o.r.cap,bq.n/o.r.cap<.5?'w':'g')}</td><td>${o.lv===0?'<span class="pill ok">Libre todo el semestre</span>':`<span class="pill warn">Ocupada ${pct(o.lv)} del semestre</span>`}</td><td>${barCell(o.x.util,utilCls(o.x.util))}</td></tr>`).join('')}</tbody></table></div>${res.length>80?`<p class="muted small">Se muestran las 80 de mejor ajuste; el CSV incluye todas.</p>`:''}`
       :'<div class="note">No hay aulas libres con esa capacidad en esa franja. Revise las alternativas de horario o amplíe los edificios.</div>'}</div>
@@ -205,7 +205,7 @@ function renderBuscar(){
 const edifOpts=sel=>`<option value="*">Todos los edificios</option>`+Object.keys(EDIF).map(c=>`<option value="${c}" ${c===sel?'selected':''}>${esc(edifN(c))}</option>`).join('');
 
 /* ---------- SIMULADOR DE PROGRAMA NUEVO ---------- */
-const JOR={diurna:[2,24,'Diurna (7:00–18:00)'],nocturna:[24,32,'Nocturna (18:00–22:00)'],completa:[2,32,'Completa (7:00–22:00)']};
+const JOR={diurna:[2,24,'Diurna (7:00-18:00)'],nocturna:[24,32,'Nocturna (18:00-22:00)'],completa:[2,32,'Completa (7:00-22:00)']};
 const sim={nombre:'Ingeniería en Inteligencia Artificial',n:40,coh:4,cursos:6,horas:4,jor:'diurna',sab:false,edifs:null};
 const blocksOf=h=>h<=3?[h*2]:h===4?[4,4]:h===5?[6,4]:h===6?[4,4,4]:[...Array(Math.floor(h/2)).fill(4),...(h%2?[2]:[])];
 /** Asignación voraz con restricciones: aula libre todo el semestre, capacidad suficiente y sin cruces de la cohorte. */
@@ -259,7 +259,7 @@ function renderSimular(){
     <label>Asignaturas por cohorte<input id="sCur" type="number" min="1" max="10" value="${sim.cursos}"></label>
     <label>Horas presenciales por asignatura/semana<select id="sHor">${[2,3,4,5,6].map(h=>`<option ${h===sim.horas?'selected':''}>${h}</option>`).join('')}</select></label>
     <label>Jornada<select id="sJor">${Object.entries(JOR).map(([k,v])=>`<option value="${k}" ${k===sim.jor?'selected':''}>${v[2]}</option>`).join('')}</select></label>
-    <label style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="sSab" ${sim.sab?'checked':''}> Usar sábados (7:00–13:00)</label>
+    <label style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="sSab" ${sim.sab?'checked':''}> Usar sábados (7:00-13:00)</label>
     <label style="grid-column:1/-1">Edificios donde puede dictarse<div class="checks">${Object.keys(EDIF).map(c=>`<label><input type="checkbox" data-e="${c}" ${sim.edifs.includes(c)?'checked':''}>${esc(edifN(c))}</label>`).join('')}</div></label>
   </div></div><div id="sRes" class="mt"></div>`;
   const run=()=>{
@@ -281,7 +281,7 @@ function renderSimular(){
     </div>
     <div class="card mt"><div class="row sp mb"><h3>Horario propuesto por cohorte</h3><button class="btn ghost sm" id="csvS">Descargar propuesta (CSV)</button></div>
       <div class="grid g2">${R.plan.map((items,c)=>{const cells=DAYS.map(()=>Array(16).fill(null));
-        items.forEach(it=>{for(let i=it.t;i<it.t+it.len;i+=2)cells[it.d][i/2]={t:`A${it.k+1} · ${it.r.cod||it.r.nom}`,c:'n',tip:`Asignatura ${it.k+1} · ${DAYN[it.d]} ${slotT(it.t)}–${slotT(it.t+it.len)} · ${it.r.nom} (${edifN(it.r.edif)}, ${it.r.cap} sillas)`}});
+        items.forEach(it=>{for(let i=it.t;i<it.t+it.len;i+=2)cells[it.d][i/2]={t:`A${it.k+1} · ${it.r.cod||it.r.nom}`,c:'n',tip:`Asignatura ${it.k+1} · ${DAYN[it.d]} ${slotT(it.t)}-${slotT(it.t+it.len)} · ${it.r.nom} (${edifN(it.r.edif)}, ${it.r.cap} sillas)`}});
         const exp=sim.cursos*blocksOf(sim.horas).length;
         return `<div><h4 class="mb">Cohorte ${c+1} ${items.length<exp?`<span class="pill bad">${exp-items.length} bloques sin ubicar</span>`:''}</h4>${timetable(cells)}</div>`}).join('')}</div></div>
     <div class="card mt"><h3>Aulas que usaría el programa</h3><p class="sub">Ocupación de cada aula antes y después de incorporar el programa.</p>
@@ -319,10 +319,10 @@ function renderHallazgos(){
     hol:[['Aula','Edificio','Capacidad','Ocupación','Horas/sem'],F.hol.map(x=>[x.r.nom,edifN(x.r.edif),x.r.cap,pct(x.util),x.hrs.toFixed(1)])],
     over:[['Asignatura','Aula','Edificio','Inscritos','Capacidad','Exceso'],F.over.map(o=>[o.s[7],o.r.nom,edifN(o.r.edif),o.s[9],o.r.cap,o.s[9]-o.r.cap])],
     small:[['Asignatura','Aula','Edificio','Inscritos','Capacidad'],F.small.map(o=>[o.s[7],o.r.nom,edifN(o.r.edif),o.s[9],o.r.cap])],
-    cross:[['Aula','Asignatura A','Horario A','Asignatura B','Horario B'],F.cross.map(c=>[c.r.nom,c.x[7],hhmm(c.x[2])+'–'+hhmm(c.x[3]),c.y[7],hhmm(c.y[2])+'–'+hhmm(c.y[3])])]};
+    cross:[['Aula','Asignatura A','Horario A','Asignatura B','Horario B'],F.cross.map(c=>[c.r.nom,c.x[7],hhmm(c.x[2])+'-'+hhmm(c.x[3]),c.y[7],hhmm(c.y[2])+'-'+hhmm(c.y[3])])]};
   $('#hallazgos').innerHTML=`<p class="intro">Diagnóstico generado automáticamente a partir de la programación de <b>${esc(ciclo)}</b> en ${edif==='*'?'todos los edificios':'<b>'+esc(edifN(edif))+'</b>'}. Cambie el periodo o el edificio en la parte superior para recalcular.</p>
   <div class="card"><div class="find">
-  ${item(1,'Hay capacidad instalada sin usar, pero no a todas las horas',`La ocupación horaria promedio es de <b>${pct(F.sm.util)}</b>. En la mañana (7:00–12:00) se ocupa en promedio el <b>${pct(F.am)}</b> de las aulas, en la tarde (14:00–18:00) el <b>${pct(F.pm)}</b> y en la noche (18:00–22:00) el <b>${pct(F.nt)}</b>. El crecimiento de la oferta cabe con menor fricción en las franjas de menor uso.`)}
+  ${item(1,'Hay capacidad instalada sin usar, pero no a todas las horas',`La ocupación horaria promedio es de <b>${pct(F.sm.util)}</b>. En la mañana (7:00-12:00) se ocupa en promedio el <b>${pct(F.am)}</b> de las aulas, en la tarde (14:00-18:00) el <b>${pct(F.pm)}</b> y en la noche (18:00-22:00) el <b>${pct(F.nt)}</b>. El crecimiento de la oferta cabe con menor fricción en las franjas de menor uso.`)}
   ${item(2,`${F.sat.length} aulas están saturadas y ${F.hol.length} tienen holgura amplia`,`Las saturadas superan el 70% de ocupación horaria; las de holgura están por debajo del 20% y suman <b>${num(F.hol.reduce((t,x)=>t+x.r.cap,0))} sillas</b>. Redistribuir carga entre unas y otras reduce la presión sin obra nueva.`,tbl(...T.sat,'sat')+tbl(...T.hol,'hol'))}
   ${item(3,`${F.over.length} sesiones tienen más inscritos que sillas`,`Son grupos asignados a un aula cuya capacidad registrada es menor al número de inscritos. Conviene reubicarlos con la pestaña “Buscar espacio” o verificar la capacidad registrada del aula.`,tbl(...T.over,'over'))}
   ${item(4,`${F.small.length} sesiones ocupan aulas de 30 o más sillas con la mitad o menos de los puestos`,`Equivalen a <b>${num(F.hSmall)} horas-aula semanales</b> en las que un aula grande atiende un grupo pequeño. Pasar esos grupos a aulas menores libera espacios para cohortes numerosas.`,tbl(...T.small,'small'))}
